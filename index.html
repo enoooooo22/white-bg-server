@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI White BG Uploader (Final)</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+    #upload-box { border: 2px dashed #ccc; padding: 40px; text-align: center; margin-bottom: 20px; }
+    #results a, #results div { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h2>Upload Product Images (Final Version)</h2>
+  <div id="upload-box">
+    <input type="file" id="file-input" multiple accept="image/*" />
+  </div>
+  <div id="results"></div>
+  <script>
+    const input = document.getElementById('file-input');
+    const results = document.getElementById('results');
+
+    input.addEventListener('change', async function () {
+      results.innerHTML = '';
+      for (let file of input.files) {
+        const status = document.createElement('div');
+        status.textContent = 'Processing ' + file.name + '...';
+        results.appendChild(status);
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+          const res = await fetch('/api/removebg', { method: 'POST', body: formData });
+          if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(errorText || 'Unknown error');
+          }
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = file.name.replace(/\.(jpg|png)$/i, '') + '_whitebg.png';
+          link.textContent = '✅ Download: ' + link.download;
+          results.appendChild(link);
+        } catch (err) {
+          const error = document.createElement('div');
+          error.style.color = 'red';
+          error.textContent = '❌ ' + file.name + ' → ' + err.message;
+          results.appendChild(error);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
